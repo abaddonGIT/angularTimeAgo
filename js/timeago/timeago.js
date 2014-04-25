@@ -53,6 +53,15 @@ timeago.factory('$timeAgo', [function () {
             return str3;
         }
     };
+    //Преобразует строку в метку времени
+    var prepare = function (value) {
+        if(angular.isString(value)) {
+            var date = new Date(value);
+            return date.getTime();
+        } else {
+            return value;
+        }
+    };
 
     var config = {
         prefixAgo: null,
@@ -116,8 +125,22 @@ timeago.factory('$timeAgo', [function () {
 
     return {
         parse: parse,
+        prepare: prepare,
         config: function (settings) {
             angular.extend(config, settings);
+        }
+    };
+}]);
+//Фильтр
+timeago.filter("timeago", ["$timeAgo", "$curTime", function ($timeAgo, $curTime) {
+    return function (value) {
+        var stamp = $timeAgo.prepare(value);
+        
+        if(isNaN(stamp)) {
+            return value;
+        } else {
+            var now = $curTime();
+            return $timeAgo.parse(now - stamp);
         }
     };
 }]);
