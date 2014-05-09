@@ -5,7 +5,7 @@
  * Date: 15.04.14
  * Time: 23:10
  * Description: Shows how long the post was published
- * Source: jQuery plugin timeago https://github.com/rmm5t/jquery-timeago/blob/master/jquery.timeago.js 
+ * Source: jQuery plugin timeago https://github.com/rmm5t/jquery-timeago/blob/master/jquery.timeago.js
  */
 var timeago = angular.module("timeago", []);
 
@@ -17,11 +17,13 @@ timeago.directive("timeAgo", ['$timeAgo', '$curTime', function ($timeAgo, $curTi
                 startTime = value;
             });
             //регистрация слушателя на секундамер
+
             scope.$watch(function () {
                 return $curTime() - startTime;
             }, function (value) {
                 elem.html($timeAgo.parse(value));
             });
+
         }
     };
 }]);
@@ -29,25 +31,27 @@ timeago.directive("timeAgo", ['$timeAgo', '$curTime', function ($timeAgo, $curTi
  * Запускает секундомер
  */
 timeago.factory('$curTime', ['$timeout', function ($timeout) {
-    var time = Date.now();
+    var time = Date.now(), timer;
     var update = function () {
-        $timeout(function () {
+        $timeout.cancel(timer);
+        timer = $timeout(function () {
             time = Date.now();
             update();
         }, 1000);
     };
     update();
+
     return function () {
         return time;
     };
 }]);
-timeago.factory('$timeAgo', [function () {
+timeago.factory('$timeAgo', ['$timeout', function ($timeout) {
     //Правильные окончания слов
     var correctEnd = function (val, str1, str2, str3) {
         var n10 = val % 10;
-        if ( (n10 == 1) && ( (val == 1) || (val > 20) ) ) {
+        if ((n10 == 1) && ( (val == 1) || (val > 20) )) {
             return str1;
-        } else if ( (n10 > 1) && (n10 < 5) && ( (val > 20) || (val < 10) ) ) {
+        } else if ((n10 > 1) && (n10 < 5) && ( (val > 20) || (val < 10) )) {
             return str2;
         } else {
             return str3;
@@ -55,7 +59,7 @@ timeago.factory('$timeAgo', [function () {
     };
     //Преобразует строку в метку времени
     var prepare = function (value) {
-        if(angular.isString(value)) {
+        if (angular.isString(value)) {
             var date = new Date(value);
             return date.getTime();
         } else {
@@ -135,11 +139,10 @@ timeago.factory('$timeAgo', [function () {
 timeago.filter("timeago", ["$timeAgo", "$curTime", function ($timeAgo, $curTime) {
     return function (value) {
         var stamp = $timeAgo.prepare(value);
-        
-        if(isNaN(stamp)) {
+        if (isNaN(stamp)) {
             return value;
         } else {
-            var now = $curTime();
+            var now = Date.now();
             return $timeAgo.parse(now - stamp);
         }
     };
