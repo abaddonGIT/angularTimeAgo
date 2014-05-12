@@ -33,8 +33,7 @@ timeago.directive("timeAgo", ['$timeAgo', '$curTime', function ($timeAgo, $curTi
 timeago.factory('$curTime', ['$timeout', function ($timeout) {
     var time = Date.now(), timer;
     var update = function () {
-        $timeout.cancel(timer);
-        timer = $timeout(function () {
+        $timeout(function () {
             time = Date.now();
             update();
         }, 1000);
