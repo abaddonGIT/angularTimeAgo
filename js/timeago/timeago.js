@@ -19,7 +19,7 @@ timeago.directive("timeAgo", ['$timeAgo', '$curTime', function ($timeAgo, $curTi
             //регистрация слушателя на секундамер
 
             scope.$watch(function () {
-                return $curTime() - startTime;
+                return $curTime.getTime() - startTime;
             }, function (value) {
                 elem.html($timeAgo.parse(value));
             });
@@ -40,8 +40,43 @@ timeago.factory('$curTime', ['$timeout', function ($timeout) {
     };
     update();
 
-    return function () {
+    var getTime = function () {
         return time;
+    };
+    //Добавляет наблюдателей
+    var Watcher = function (limit, scope, callback) {
+        if (!(this instanceof Watcher)) {
+            return new Watcher(limit, scope, callback);
+        }
+
+        angular.extend(this, {
+            addTime: Date.now(),
+            scope: scope,
+            limit: limit
+        });
+
+        if (!this.scope) {
+            alert ("В наблюдатель не передан scope!!!");
+        } else {
+            this.stopWatch = this.scope.$watch(function () {
+                return getTime();
+            }, function (value) {
+               if (this.limit) {
+                   this.limit--;
+               } else {
+                   this.stopWatch();
+                   callback();
+               }
+
+            }.bind(this));
+        }
+    };
+
+    return {
+        getTime: getTime,
+        addWatcher: function (limit, scope, callback) {
+            return Watcher(limit, scope, callback);
+        }
     };
 }]);
 timeago.factory('$timeAgo', ['$timeout', function ($timeout) {
@@ -141,7 +176,7 @@ timeago.filter("timeago", ["$timeAgo", "$curTime", function ($timeAgo, $curTime)
         if (isNaN(stamp)) {
             return value;
         } else {
-            var now = Date.now();
+            var now = $curTime.getTime();
             return $timeAgo.parse(now - stamp);
         }
     };
